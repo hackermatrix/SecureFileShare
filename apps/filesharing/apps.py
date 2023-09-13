@@ -3,4 +3,4 @@ from django.apps import AppConfig
 
 class FilesharingConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'filesharing'
+    name = 'apps.filesharing'
