@@ -6,6 +6,7 @@ urlpatterns = [
     path("upload",views.FileUpload.as_view(),name="Url test"),
     path("listing",views.FileView.as_view(),name="List Files"),
     path("file/delete",views.FileDelete.as_view(),name="Delete Files"),
+    path("file/download",views.FileDownload.as_view(),name="Download a File")
 
 
 ]

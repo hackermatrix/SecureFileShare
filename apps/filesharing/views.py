@@ -35,8 +35,8 @@ class FileUpload(APIView):
             user_id = request.user.id
             uploaded_file = serializer.validated_data['file']
             s3_key = f'user_{user_id}/{uploaded_file.name}'
-            access_key = os.urandom(32)
-            aws.s3_client.upload_fileobj(uploaded_file, settings.AWS_STORAGE_BUCKET_NAME, s3_key,ExtraArgs={'SSECustomerAlgorithm': 'AES256','SSECustomerKey': access_key})
+            # access_key = os.urandom(32)
+            aws.s3_client.upload_fileobj(uploaded_file, settings.AWS_STORAGE_BUCKET_NAME, s3_key)
             user_file = UserFiles(
                 UserID=request.user,
                 FileName=uploaded_file.name,
@@ -96,5 +96,41 @@ class FileDelete(APIView):
         
         else:
             return Response({"error": "Missing 'fileid' parameter."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class FileDownload(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, format=None):
+
+        file_id = request.query_params.get('fileid')
+        if file_id is not None:
+            try:
+                file_id = int(file_id)
+                user_id = request.user.id
+                file_to_download = UserFiles.objects.get(FileID=file_id,UserID=user_id)
+                file_name = file_to_download.FileName
+                file_key = file_to_download.FileKey
+                # # access_key = file_to_download.AccessKey
+
+                res = aws.s3_client.get_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+                                               Key=file_key)
+                
+                # print(res)
+                response = HttpResponse(content=res['Body'],content_type='application/octet-stream')
+
+                response['Content-Disposition'] = f'attachment; filename="{file_name}"'
+                return response
+            
+            except UserFiles.DoesNotExist:
+                return Response({"error":"File Not Found"},status=status.HTTP_404_NOT_FOUND)
+            except ClientError as e:
+                return Response({"error":str(e)},status=status.HTTP_400_BAD_REQUEST)
+            except ValueError:
+                return Response({"error": "Invalid 'FileID' parameter."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        else:
+            return Response({"error":"Missing 'FileID' parameter"},status=status.HTTP_400_BAD_REQUEST)
+        
 
 
