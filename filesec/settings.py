@@ -96,6 +96,14 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
 ]
 
+# CORS_ALLOW_HEADERS = [
+#     'Content-Disposition',  
+# ]
+# CORS_ALLOW_METHODS = [
+#     # ... other HTTP methods ...
+#     'GET', 'POST', 'OPTIONS',  # Ensure 'OPTIONS' is included
+# ]
+
 ROOT_URLCONF = 'filesec.urls'
 
 TEMPLATES = [
@@ -174,3 +182,25 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # STATIC_ROOT = BASE_DIR / 'productionfiles'
 
 # STATIC_URL = 'static/'
+
+# settings.py
+
+from celery.schedules import crontab
+
+
+
+# Celery configuration
+CELERY_BROKER_URL = 'pyamqp://localhost'  # RabbitMQ broker URL
+CELERY_RESULT_BACKEND = 'rpc://localhost'  
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
+# Define the periodic task to run every minute
+CELERY_BEAT_SCHEDULE = {
+    'delete_expired_permissions': {
+        'task': 'filesharing.tasks.delete_expired_permissions',  # Task path
+        'schedule': crontab(minute='*'),  # Run every minute
+    },
+}
+

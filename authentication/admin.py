@@ -1,6 +1,7 @@
 from django.contrib import admin
 from authentication.models import User
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from apps.filesharing.models import *
 
 
 
@@ -37,3 +38,7 @@ class UserAdmin(BaseUserAdmin):
 
 # Now register the new UserAdmin...
 admin.site.register(User, UserAdmin)
+admin.site.register(UserFiles)
+admin.site.register(PermTable)
+admin.site.register(Notifications)
+
