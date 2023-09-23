@@ -11,3 +11,4 @@ session = boto3.Session(
 # reusable clients 
 
 s3_client = session.client('s3')
+cloudfront = session.client('cloudfront')

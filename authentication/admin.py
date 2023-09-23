@@ -39,6 +39,6 @@ class UserAdmin(BaseUserAdmin):
 # Now register the new UserAdmin...
 admin.site.register(User, UserAdmin)
 admin.site.register(UserFiles)
-admin.site.register(PermTable)
-admin.site.register(Notifications)
+admin.site.register(SharedFile)
+
 

@@ -1,6 +1,10 @@
 from django.db import models
 from authentication.models import User
 from django.utils import timezone
+import datetime
+
+from filesec import settings
+from .utils.aws import cloudfront,s3_client
 
 
 class UserFiles(models.Model):
@@ -10,12 +14,41 @@ class UserFiles(models.Model):
     FileKey = models.CharField(max_length=255)
     FileSize = models.BigIntegerField(default=0)
     FileType = models.CharField(max_length=50)
+    FileCategory = models.CharField(max_length=50,default="")
     UploadedAt = models.DateTimeField(default=timezone.now)  
     LastModifiedAt = models.DateTimeField(default=timezone.now)
-    SharedWith = models.CharField
 
     def __str__(self):
         return (f"{self.FileID} - {self.FileName}")
+    
+class SharedFile(models.Model):
+    File = models.ForeignKey(UserFiles, on_delete=models.CASCADE)
+    Owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    Shared_with = models.ManyToManyField(User, related_name='shared_files')
+    Expiration_time = models.BigIntegerField()
+    LastModifiedAt = models.DateTimeField(default=timezone.now)
+    FileUrl = models.URLField(default="")
+
+    def get_signed_url(self):
+
+        distribution_id = 'E29V79BB9SHF9I'
+        object_key = self.File.FileKey
+
+        signed_url = s3_client.generate_presigned_url(
+            ClientMethod='get_object',
+            Params={
+                'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
+                'Key': object_key,
+                "ResponseContentType": self.File.FileType
+            },
+            ExpiresIn=self.Expiration_time*60,
+            
+        )
+
+        return signed_url
+
+    def __str__(self):
+        return self.File.FileName
     
 class PermTable(models.Model):
     File = models.ForeignKey(UserFiles, on_delete=models.CASCADE)
